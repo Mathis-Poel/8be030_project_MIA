@@ -118,13 +118,14 @@ def image_transform(I, Th,  output_shape=None):
     # convert to homogeneous coordinates
     Xh = util.c2h(X)
 
-    #------------------------------------------------------------------#
-    # TODO: Perform inverse coordinates mapping.
-    Xt_h = np.linalg.inv(Th).dot(Xh)
-    Xt = Xt_h[:2, :] / Xt_h[2, :]
-    #------------------------------------------------------------------#
+    # apply the inverse mapping  
+    Th_inv = np.linalg.inv(Th)
+    Xh_t = Th_inv.dot(Xh)
+    # convert back to Cartesian coordinates
+    Xt = util.h2c(Xh_t)
+        
 
-    It = ndimage.map_coordinates(I.astype(float), [Xt[1,:], Xt[0,:]], order=1, mode='constant').reshape(output_shape)
+    It = ndimage.map_coordinates(I, [Xt[1,:], Xt[0,:]], order=1, mode='constant').reshape(output_shape)
 
     return It, Xt
 
@@ -196,12 +197,10 @@ def correlation(I, J):
     u = u - u.mean(keepdims=True)
     v = v - v.mean(keepdims=True)
 
-    #------------------------------------------------------------------#
-    # TODO: Implement the computation of the normalized cross-correlation.
-    # This can be done with a single line of code, but you can use for-loops instead.
-    denom = np.sqrt(np.transpose(u).dot(u) * np.transpose(v).dot(v))
-    CC = 0.0 if denom == 0 else float(np.transpose(u).dot(v) / denom)
-    #------------------------------------------------------------------#
+    
+    #Implement the computation of the normalized cross-correlation.
+    CC = np.dot(u.T, v) / (np.linalg.norm(u) * np.linalg.norm(v))
+    CC = float(CC[0, 0])  # extract scalar from 1x1 matrix
 
     return CC
 
@@ -381,7 +380,7 @@ def rigid_corr(I, Im, x, return_transform=True):
     Th = util.t2h(T, x[1:]*SCALING)
 
     # transform the moving image
-    Im_t, Xt = image_transform(Im, Th)
+    Im_t, _ = image_transform(Im, Th)
 
     # compute the similarity between the fixed and transformed
     # moving image

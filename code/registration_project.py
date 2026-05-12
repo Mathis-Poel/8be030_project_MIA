@@ -4,6 +4,7 @@ Project code for image registration topics.
 
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.model_selection import learning_curve
 import registration as reg
 from IPython.display import display, clear_output
 
@@ -12,8 +13,8 @@ def intensity_based_registration_demo():
 
     # read the fixed and moving images
     # change these in order to read different images
-    I = plt.imread('../data/image_data/1_1_t1.tif')
-    Im = plt.imread('../data/image_data/1_1_t1_d.tif')
+    I = plt.imread('../data/image_data/3_1_t1.tif')
+    Im = plt.imread('../data/image_data/3_1_t2.tif')
 
     # initial values for the parameters
     # we start with the identity transformation
@@ -81,6 +82,9 @@ def intensity_based_registration_demo():
 
         # update 'learning' curve
         similarity[k] = S
-        learning_curve.set_ydata(similarity)
-
+        learning_curve.set_xdata(iterations[:k+1])
+        learning_curve.set_ydata(similarity[:k+1])
+        ax2.relim()
+        ax2.autoscale_view()
+        fig.canvas.draw()
         display(fig)

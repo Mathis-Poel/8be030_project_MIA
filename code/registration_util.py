@@ -46,15 +46,19 @@ def t2h(T, t):
     #------------------------------------------------------------------#
     # Convert T and t to arrays and place them in the top block of a
     # 3-by-3 homogeneous transformation matrix.
-    T = np.asarray(T)
-    t = np.asarray(t).reshape(2,)
+    n = T.shape[0]
+    Th = np.eye(n + 1)
+    Th[:n, :n] = T
+    Th[:n, n] = t
 
-    Th = np.eye(3)
-    Th[0:2, 0:2] = T
-    Th[0:2, 2] = t
-
-    return Th
+    return Th #rotatie én translatie in één matrix, zodat we deze in één keer kunnen toepassen op de punten in homogene coördinaten
     #------------------------------------------------------------------#
+	
+def h2c(Xh): #code nodig voor projectie van homogene coördinaten naar cartesiaanse coördinaten
+    # Convert homogeneous coordinates to cartesian coordinates
+    # by dividing by the last row and removing it
+    return Xh[:-1, :] / Xh[-1, :]
+
 
 def plot_object(ax, X):
     # Plot 2D object.
