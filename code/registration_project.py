@@ -106,7 +106,7 @@ def compare_ncc_mi_registration():
     mu_ncc = 0.001
     mu_mi = 0.001
 
-    num_iter = 2
+    num_iter = 2 #nu nog laag omdat het anders te lang duurt, maar je kunt dit verhogen als je wilt 
 
     sim_ncc = []
     sim_mi = []
