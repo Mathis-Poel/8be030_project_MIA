@@ -9,7 +9,7 @@ import registration as reg
 from IPython.display import display, clear_output
 
 
-def intensity_based_registration_demo():
+def intensity_based_registration_rigid():
 
     # read the fixed and moving images
     # change these in order to read different images
@@ -19,7 +19,10 @@ def intensity_based_registration_demo():
     # initial values for the parameters
     # we start with the identity transformation
     # most likely you will not have to change these
-    x = np.array([0., 0., 0.])
+
+    
+    x = np.array([0.,0.,0.])
+    
 
     # NOTE: for affine registration you have to initialize
     # more parameters and the scaling parameters should be
@@ -88,3 +91,12 @@ def intensity_based_registration_demo():
         ax2.autoscale_view()
         fig.canvas.draw()
         display(fig)
+def intentsity_based_registration_affine():
+    I = plt.imread('../data/image_data/3_1_t1.tif')
+    Im = plt.imread('../data/image_data/3_1_t2.tif')
+
+    # Needs 7 parameters [rot, scaling_x, scaling_y,
+    # shearing_x, shearing_y, translation_x, translation_y]
+    # with the NOTE above it gives a x_affine of
+    x_affine = np.array([0., 1., 1.,0.,0.,0.,0.]) 
+    
