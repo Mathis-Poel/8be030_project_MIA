@@ -91,7 +91,10 @@ def intensity_based_registration_rigid():
         ax2.autoscale_view()
         fig.canvas.draw()
         display(fig)
+
+
 def intentsity_based_registration_affine():
+    """almost the same as above but now for affine instead of rigid"""
     I = plt.imread('../data/image_data/3_1_t1.tif')
     Im = plt.imread('../data/image_data/3_1_t2.tif')
 
@@ -100,3 +103,58 @@ def intentsity_based_registration_affine():
     # with the NOTE above it gives a x_affine of
     x_affine = np.array([0., 1., 1.,0.,0.,0.,0.]) 
     
+    fun= lambda x: reg.affine_corr(I,Im, x_affine, return_transform=False)
+    mu = 0.001 #learing rate, the same as in rigid
+    num_iter =200
+
+    iterations = np.arange(1, num_iter+1)
+    similarity = np.full((num_iter, 1), np.nan)
+
+    fig = plt.figure(figsize=(14,6))
+
+    # fixed and moving image, and parameters
+    ax1 = fig.add_subplot(121)
+
+    # fixed image
+    im1 = ax1.imshow(I)
+    # moving image
+    im2 = ax1.imshow(I, alpha=0.7)
+    # parameters
+    txt = ax1.text(0.3, 0.95,
+        np.array2string(x, precision=5, floatmode='fixed'),
+        bbox={'facecolor': 'white', 'alpha': 1, 'pad': 10},
+        transform=ax1.transAxes)
+
+    # 'learning' curve
+    ax2 = fig.add_subplot(122, xlim=(0, num_iter), ylim=(0, 1))
+
+    learning_curve, = ax2.plot(iterations, similarity, lw=2)
+    ax2.set_xlabel('Iteration')
+    ax2.set_ylabel('Similarity')
+    ax2.grid()
+    
+    # This part changes form the demo function
+    for k in np.arange(num_iter):
+
+        # gradient ascent
+        g = reg.ngradient(fun, x)
+        x += g*mu
+
+        # for visualization of the result
+        S, Im_t, _ = reg.affine_corr(I, Im, x, return_transform=True)
+
+        clear_output(wait = True)
+
+        # update moving image and parameters
+        im2.set_data(Im_t)
+        txt.set_text(np.array2string(x, precision=5, floatmode='fixed'))
+
+        # update 'learning' curve
+        similarity[k] = S
+        learning_curve.set_xdata(iterations[:k+1])
+        learning_curve.set_ydata(similarity[:k+1])
+        ax2.relim()
+        ax2.autoscale_view()
+        fig.canvas.draw()
+        display(fig)
+
