@@ -36,7 +36,7 @@ def intensity_based_registration_rigid():
     fun = lambda x: reg.rigid_corr(I, Im, x, return_transform=False)
 
     # the learning rate
-    mu = 0.001
+    mu = 0.0005 #iets kleiner dan 0.001, anders divergeert het in lokaal minimum
 
     # number of iterations
     num_iter = 200
@@ -93,68 +93,68 @@ def intensity_based_registration_rigid():
         display(fig)
 
 
-def intentsity_based_registration_affine():
-    """almost the same as above but now for affine instead of rigid"""
+def compare_ncc_mi_registration():
+    # Fixed = T1, Moving = T2
     I = plt.imread('../data/image_data/3_1_t1.tif')
     Im = plt.imread('../data/image_data/3_1_t2.tif')
 
-    # Needs 7 parameters [rot, scaling_x, scaling_y,
-    # shearing_x, shearing_y, translation_x, translation_y]
-    # with the NOTE above it gives a x_affine of
-    x_affine = np.array([0., 1., 1.,0.,0.,0.,0.]) 
-    
-    fun= lambda x: reg.affine_corr(I,Im, x_affine, return_transform=False)
-    mu = 0.001 #learing rate, the same as in rigid
-    num_iter =200
+    # affine parameters:
+    # [rotation, sx, sy, shearx, sheary, tx, ty]
+    x_ncc = np.array([0., 1., 1., 0., 0., 0., 0.])
+    x_mi  = np.array([0., 1., 1., 0., 0., 0., 0.])
 
-    iterations = np.arange(1, num_iter+1)
-    similarity = np.full((num_iter, 1), np.nan)
+    fun_ncc = lambda x: reg.affine_corr(I, Im, x, return_transform=False)
+    fun_mi  = lambda x: reg.affine_mi(I, Im, x, return_transform=False)
 
-    fig = plt.figure(figsize=(14,6))
+    mu_ncc = 0.001
+    mu_mi = 0.001
 
-    # fixed and moving image, and parameters
-    ax1 = fig.add_subplot(121)
+    num_iter = 2 #nu nog laag omdat het anders te lang duurt, maar je kunt dit verhogen als je wilt 
 
-    # fixed image
-    im1 = ax1.imshow(I)
-    # moving image
-    im2 = ax1.imshow(I, alpha=0.7)
-    # parameters
-    txt = ax1.text(0.3, 0.95,
-        np.array2string(x, precision=5, floatmode='fixed'),
-        bbox={'facecolor': 'white', 'alpha': 1, 'pad': 10},
-        transform=ax1.transAxes)
+    sim_ncc = []
+    sim_mi = []
 
-    # 'learning' curve
-    ax2 = fig.add_subplot(122, xlim=(0, num_iter), ylim=(0, 1))
+    for k in range(num_iter):
+        # Sla waarde op VOOR de update (geen extra aanroep nodig)
+        sim_ncc.append(fun_ncc(x_ncc))
+        sim_mi.append(fun_mi(x_mi))
 
-    learning_curve, = ax2.plot(iterations, similarity, lw=2)
-    ax2.set_xlabel('Iteration')
-    ax2.set_ylabel('Similarity')
-    ax2.grid()
-    
-    # This part changes form the demo function
-    for k in np.arange(num_iter):
+        # NCC optimization
+        g_ncc = reg.ngradient(fun_ncc, x_ncc)
+        x_ncc += mu_ncc * g_ncc
 
-        # gradient ascent
-        g = reg.ngradient(fun, x)
-        x += g*mu
+        # MI optimization
+        g_mi = reg.ngradient(fun_mi, x_mi)
+        x_mi += mu_mi * g_mi
 
-        # for visualization of the result
-        S, Im_t, _ = reg.affine_corr(I, Im, x, return_transform=True)
+    # final transformed images
+    _, Im_ncc, _ = reg.affine_corr(I, Im, x_ncc)
+    _, Im_mi, _ = reg.affine_mi(I, Im, x_mi)
 
-        clear_output(wait = True)
+    # visualization
+    fig = plt.figure(figsize=(15,8))
 
-        # update moving image and parameters
-        im2.set_data(Im_t)
-        txt.set_text(np.array2string(x, precision=5, floatmode='fixed'))
+    ax1 = fig.add_subplot(231)
+    ax1.imshow(I, cmap='gray')
+    ax1.set_title("Fixed T1")
 
-        # update 'learning' curve
-        similarity[k] = S
-        learning_curve.set_xdata(iterations[:k+1])
-        learning_curve.set_ydata(similarity[:k+1])
-        ax2.relim()
-        ax2.autoscale_view()
-        fig.canvas.draw()
-        display(fig)
+    ax2 = fig.add_subplot(232)
+    ax2.imshow(I, cmap='gray')
+    ax2.imshow(Im_ncc, cmap='hot', alpha=0.5)
+    ax2.set_title("NCC Registration")
 
+    ax3 = fig.add_subplot(233)
+    ax3.imshow(I, cmap='gray')
+    ax3.imshow(Im_mi, cmap='hot', alpha=0.5)
+    ax3.set_title("MI Registration")
+
+    ax4 = fig.add_subplot(212)
+    ax4.plot(sim_ncc, label='NCC')
+    ax4.plot(sim_mi, label='MI')
+    ax4.set_xlabel("Iteration")
+    ax4.set_ylabel("Similarity")
+    ax4.legend()
+    ax4.grid()
+
+    plt.tight_layout()
+    plt.show()
