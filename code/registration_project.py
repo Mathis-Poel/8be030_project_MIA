@@ -9,7 +9,7 @@ import registration as reg
 from IPython.display import display, clear_output
 
 
-def intensity_based_registration_demo():
+def intensity_based_registration_rigid():
 
     # read the fixed and moving images
     # change these in order to read different images
@@ -19,7 +19,10 @@ def intensity_based_registration_demo():
     # initial values for the parameters
     # we start with the identity transformation
     # most likely you will not have to change these
-    x = np.array([0., 0., 0.])
+
+    
+    x = np.array([0.,0.,0.])
+    
 
     # NOTE: for affine registration you have to initialize
     # more parameters and the scaling parameters should be
