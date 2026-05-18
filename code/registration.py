@@ -415,9 +415,10 @@ def affine_corr(I, Im, x, return_transform=True):
     #------------------------------------------------------------------#
     # TODO: Implement the missing functionality
     T = rotate(x[0]).dot(scale(x[1], x[2])).dot(shear(x[3], x[4]))
-    Th = util.t2h(T, x[5:]*SCALING)
-    Im_t, Xt = image_transform(Im, Th)
-    C = correlation(I, Im_t)
+    # the parameters 
+    Th = util.t2h(T, x[5:]*SCALING) #to matrix and translation
+    Im_t, Xt = image_transform(Im, Th) #transform image
+    C = correlation(I, Im_t) #compute the normalized cross-correlation
     #------------------------------------------------------------------#
 
     if return_transform:
@@ -449,10 +450,11 @@ def affine_mi(I, Im, x, return_transform=True):
     #------------------------------------------------------------------#
     # TODO: Implement the missing functionality
     T = rotate(x[0]).dot(scale(x[1], x[2])).dot(shear(x[3], x[4]))
-    Th = util.t2h(T, x[5:]*SCALING)
-    Im_t, Xt = image_transform(Im, Th)
-    p = joint_histogram(I, Im_t, NUM_BINS)
-    C = mutual_information(p)
+    #The parameters used
+    Th = util.t2h(T, x[5:]*SCALING) #in matrix form and translation
+    Im_t, Xt = image_transform(Im, Th) #transform
+    p = joint_histogram(I, Im_t, NUM_BINS) #computing the histogram
+    C = mutual_information(p) #computing the MI
     #------------------------------------------------------------------#
 
     if return_transform:
