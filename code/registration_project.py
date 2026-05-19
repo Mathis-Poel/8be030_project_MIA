@@ -13,8 +13,8 @@ def intensity_based_registration_rigid():
 
     # read the fixed and moving images
     # change these in order to read different images
-    I = plt.imread('../data/image_data/3_1_t1.tif')
-    Im = plt.imread('../data/image_data/3_1_t2.tif')
+    I = plt.imread('../data/image_data/3_2_t1.tif')
+    Im = plt.imread('../data/image_data/3_2_t2.tif')
 
     # initial values for the parameters
     # we start with the identity transformation
@@ -95,8 +95,8 @@ def intensity_based_registration_rigid():
 
 def compare_ncc_mi_registration():
     # Fixed = T1, Moving = T2
-    I = plt.imread('../data/image_data/3_1_t1.tif')
-    Im = plt.imread('../data/image_data/3_1_t2.tif')
+    I = plt.imread('../data/image_data/3_2_t1.tif')
+    Im = plt.imread('../data/image_data/3_2_t2.tif')
 
     # affine parameters:
     # [rotation, sx, sy, shearx, sheary, tx, ty]
@@ -107,7 +107,7 @@ def compare_ncc_mi_registration():
     fun_mi  = lambda x: reg.affine_mi(I, Im, x, return_transform=False)
 
     mu_ncc = 0.0001
-    mu_mi = 0.001
+    mu_mi = 0.0005
 
     num_iter = 61 
 
