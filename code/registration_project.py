@@ -13,8 +13,8 @@ def intensity_based_registration_rigid():
 
     # read the fixed and moving images
     # change these in order to read different images
-    I = plt.imread('../data/image_data/3_1_t1.tif')
-    Im = plt.imread('../data/image_data/3_1_t2.tif')
+    I = plt.imread('../data/image_data/3_2_t1.tif')
+    Im = plt.imread('../data/image_data/3_2_t2.tif')
 
     # initial values for the parameters
     # we start with the identity transformation
@@ -95,8 +95,8 @@ def intensity_based_registration_rigid():
 
 def compare_ncc_mi_registration():
     # Fixed = T1, Moving = T2
-    I = plt.imread('../data/image_data/3_1_t1.tif')
-    Im = plt.imread('../data/image_data/3_1_t2.tif')
+    I = plt.imread('../data/image_data/3_2_t1.tif')
+    Im = plt.imread('../data/image_data/3_2_t2.tif')
 
     # affine parameters:
     # [rotation, sx, sy, shearx, sheary, tx, ty]
@@ -106,26 +106,23 @@ def compare_ncc_mi_registration():
     fun_ncc = lambda x: reg.affine_corr(I, Im, x, return_transform=False)
     fun_mi  = lambda x: reg.affine_mi(I, Im, x, return_transform=False)
 
-    mu_ncc = 0.0001
-    mu_mi = 0.0001
+    mu_ncc = 0.001
+    mu_mi = 0.001
 
-    num_iter = 25 #nu nog laag omdat het anders te lang duurt, maar je kunt dit verhogen als je wilt 
+    num_iter = 2 #nu nog laag omdat het anders te lang duurt, maar je kunt dit verhogen als je wilt 
 
     sim_ncc = []
     sim_mi = []
 
     for k in range(num_iter):
-        # Sla waarde op VOOR de update (geen extra aanroep nodig)
         sim_ncc.append(fun_ncc(x_ncc))
         sim_mi.append(fun_mi(x_mi))
 
-        # NCC optimization
         g_ncc = reg.ngradient(fun_ncc, x_ncc)
-        x_ncc += mu_ncc * g_ncc
+        g_mi  = reg.ngradient(fun_mi, x_mi, h=1e-2)  # alleen dit veranderd
 
-        # MI optimization
-        g_mi = reg.ngradient(fun_mi, x_mi)
-        x_mi += mu_mi * g_mi
+        x_ncc += mu_ncc * g_ncc
+        x_mi  += mu_mi  * g_mi
 
     # final transformed images
     _, Im_ncc, _ = reg.affine_corr(I, Im, x_ncc)
