@@ -106,10 +106,10 @@ def compare_ncc_mi_registration():
     fun_ncc = lambda x: reg.affine_corr(I, Im, x, return_transform=False)
     fun_mi  = lambda x: reg.affine_mi(I, Im, x, return_transform=False)
 
-    mu_ncc = 0.001
-    mu_mi = 0.001
+    mu_ncc = 0.0001
+    mu_mi = 0.0001
 
-    num_iter = 2 #nu nog laag omdat het anders te lang duurt, maar je kunt dit verhogen als je wilt 
+    num_iter = 25 #nu nog laag omdat het anders te lang duurt, maar je kunt dit verhogen als je wilt 
 
     sim_ncc = []
     sim_mi = []
