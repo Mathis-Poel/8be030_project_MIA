@@ -453,7 +453,7 @@ def affine_mi(I, Im, x, return_transform=True):
     #The parameters used
     Th = util.t2h(T, x[5:]*SCALING) #in matrix form and translation
     Im_t, Xt = image_transform(Im, Th) #transform
-    p = joint_histogram(I, Im_t, NUM_BINS) #computing the histogram
+    p = joint_histogram(I, Im_t, num_bins=32) #computing the histogram
     C = mutual_information(p) #computing the MI
     #------------------------------------------------------------------#
 
