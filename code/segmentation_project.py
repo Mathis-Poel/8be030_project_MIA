@@ -9,9 +9,6 @@ import segmentation as seg
 import scipy
 
 def segmentation_mymethod(train_data_matrix, train_labels_matrix, test_data, task='brain'):
-    import numpy as np
-    import segmentation as seg
-
     all_predictions = []
 
     num_subjects = train_labels_matrix.shape[1]
