@@ -6,24 +6,40 @@ import numpy as np
 import segmentation_util as util
 import matplotlib.pyplot as plt
 import segmentation as seg
-
+import scipy
 
 def segmentation_mymethod(train_data_matrix, train_labels_matrix, test_data, task='brain'):
-    # segments the image based on your own method!
-    # Input:
-    # train_data_matrix   num_pixels x num_features x num_subjects matrix of
-    # features
-    # train_labels_matrix num_pixels x num_subjects matrix of labels
-    # test_data           num_pixels x num_features test data
-    # task           String corresponding to the segmentation task: either 'brain' or 'tissue'
-    # Output:
-    # predicted_labels    Predicted labels for the test slice
+    import numpy as np
+    import segmentation as seg
 
-    #------------------------------------------------------------------#
-    #TODO: Implement your method here
-    pass
-    #------------------------------------------------------------------#
-    # return predicted_labels
+    all_predictions = []
+
+    num_subjects = train_labels_matrix.shape[1]
+
+    for i in range(num_subjects):
+        train_data = train_data_matrix[:, :, i]
+        train_labels = train_labels_matrix[:, i].astype(int)
+
+        pred_k1 = seg.segmentation_knn(train_data, train_labels, test_data, k=1)
+        pred_k3 = seg.segmentation_knn(train_data, train_labels, test_data, k=3)
+        pred_k5 = seg.segmentation_knn(train_data, train_labels, test_data, k=5)
+
+        all_predictions.append(pred_k1.astype(int))
+        all_predictions.append(pred_k3.astype(int))
+        all_predictions.append(pred_k5.astype(int))
+
+    all_predictions = np.array(all_predictions).T.astype(int)
+
+    predicted_labels = np.zeros(all_predictions.shape[0], dtype=int)
+
+    for j in range(all_predictions.shape[0]):
+        values, counts = np.unique(all_predictions[j, :], return_counts=True)
+        predicted_labels[j] = values[np.argmax(counts)]
+
+    if task == 'brain':
+        predicted_labels = predicted_labels.astype(bool)
+
+    return predicted_labels
 
 
 def segmentation_demo():
