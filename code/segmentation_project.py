@@ -129,3 +129,99 @@ def segmentation_demo():
         text_str = 'Err {:.4f}, dice {:.4f}'.format(all_errors[i,1], all_dice[i,1])
         ax2.set_xlabel(text_str)
         ax2.set_title('Subject {}: My method'.format(sub))
+
+
+
+def add_salt_pepper_noise(labels, noise_fraction=0.05, n_classes=4):
+    """
+    Verandert willekeurig een percentage van de labels.
+
+    Hiermee simuleren we fouten in de segmentatie zodat
+    het effect van MRF beter zichtbaar wordt.
+    """
+
+    noisy_labels = labels.copy()
+
+    n_pixels = len(labels)
+    n_noisy = int(noise_fraction * n_pixels)
+
+    idx = np.random.choice(n_pixels, n_noisy, replace=False)
+
+    noisy_labels[idx] = np.random.randint(
+        0,
+        n_classes,
+        size=n_noisy
+    )
+
+    return noisy_labels
+
+
+def mrf_regularization(
+        labels,
+        image_shape=(240,240),
+        n_classes=4,
+        beta=1.0, #sterkte van de smoothness term 0 = geen regularisatie, >0 = meer regularisatie
+        n_iter=5): #aantal iteraties van het algoritme, meer iteraties = meer kans op convergentie, maar ook meer rekentijd
+                    #verandering van pixel A heeft invloed op pixel B daarom ook meerdere iteraties nodig
+    original = labels.reshape(image_shape)
+
+    current = original.copy()
+
+    rows, cols = image_shape
+
+    for iteration in range(n_iter):
+
+        for r in range(rows): #ga door alle pixels heen
+
+            for c in range(cols): #ga door alle pixels heen
+
+                best_label = current[r,c] #start met huidige label als beste label, dit is nodig voor het geval dat alle andere labels een hogere energie hebben
+                best_energy = np.inf
+
+                for candidate in range(n_classes): #ga door alle mogelijke labels heen, en bereken de energie van elk label, kies het label met de laagste energie als beste label
+
+                    # DATA TERM
+
+                    data_energy = (
+                        candidate != original[r,c] # de data term is 0 als het candidate label gelijk is aan het originele label, en 1 als het candidate label verschillend is van het originele label
+                    )
+
+                    # SMOOTHNESS TERM
+
+                    smooth_energy = 0
+
+                    if r > 0:
+                        smooth_energy += (
+                            candidate != current[r-1,c]
+                        ) #bovenste buurman
+
+                    if r < rows-1:
+                        smooth_energy += (
+                            candidate != current[r+1,c]
+                        ) #onderste buurman
+
+                    if c > 0:
+                        smooth_energy += (
+                            candidate != current[r,c-1]
+                        ) #linker buurman
+
+                    if c < cols-1:
+                        smooth_energy += (
+                            candidate != current[r,c+1]
+                        ) #rechter buurman
+
+                        #we kunnen eventueel ook nog diagonaal buurman meenemen even kijken wat dat doet met de randen. 
+
+                    energy = (
+                        data_energy +
+                        beta*smooth_energy
+                    )
+
+                    if energy < best_energy:
+                        best_energy = energy
+                        best_label = candidate
+
+                current[r,c] = best_label
+
+    return current.flatten()
+
