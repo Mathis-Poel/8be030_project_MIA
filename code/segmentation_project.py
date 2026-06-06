@@ -155,18 +155,37 @@ def add_salt_pepper_noise(labels, noise_fraction=0.05, n_classes=4):
 
     return noisy_labels
 
+def create_radial_beta_map(image_shape=(240,240), beta_center=0.3, beta_outer=1.5):
+    """Dit heeft dus een minimale waarde voor de center en een maximale waarde voor de outer.
+    Door dan de afstand te bepalen van elke pixel naar het middenpunt kun je de beta waarde schalen naar locatie"""
+    rows, cols = image_shape
+    y, x = np.ogrid[:rows, :cols]
+
+    center_r = rows / 2
+    center_c = cols / 2
+
+    dist = np.sqrt((y - center_r)**2 + (x - center_c)**2)
+    dist = dist / np.max(dist)
+
+    beta_map = beta_center + dist * (beta_outer - beta_center) 
+
+    return beta_map
+
 
 def mrf_regularization(
         labels,
         image_shape=(240,240),
         n_classes=4,
-        beta=1.0, #sterkte van de smoothness term 0 = geen regularisatie, >0 = meer regularisatie
+        beta_center = 0.3, #sterkte van de smoothness term 0 = geen regularisatie, >0 = meer regularisatie
+        beta_outer = 1.5,
         n_iter=5): #aantal iteraties van het algoritme, meer iteraties = meer kans op convergentie, maar ook meer rekentijd
                     #verandering van pixel A heeft invloed op pixel B daarom ook meerdere iteraties nodig
     original = labels.reshape(image_shape)
-
     current = original.copy()
-
+    beta_map =create_radial_beta_map(
+        image_shape, beta_center=beta_center, beta_outer=beta_outer
+    )
+    
     rows, cols = image_shape
 
     for iteration in range(n_iter):
@@ -214,7 +233,7 @@ def mrf_regularization(
 
                     energy = (
                         data_energy +
-                        beta*smooth_energy
+                        beta_map[r,c]*smooth_energy
                     )
 
                     if energy < best_energy:
