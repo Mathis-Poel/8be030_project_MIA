@@ -5,6 +5,8 @@ Segmentation module main code.
 import numpy as np
 import scipy
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.cluster import KMeans
+
 
 
 # SECTION 1. Segmentation in feature space
@@ -80,39 +82,59 @@ def cost_kmeans(X, w_vector):
     return J
 
 
-def kmeans_clustering(test_data, K=2):
-    # Returns the labels for test_data, predicted by the kMeans classifier.
-    import segmentation_util as reg
+# def kmeans_clustering(test_data, K=2):
+#     # Returns the labels for test_data, predicted by the kMeans classifier.
+#     import segmentation_util as reg
 
-    fun = lambda w: cost_kmeans(test_data, w)
-    mu = 0.01
-    num_iter = 100
+#     fun = lambda w: cost_kmeans(test_data, w)
+#     mu = 0.01
+#     num_iter = 100
 
-    N, M = test_data.shape
+#     N, M = test_data.shape
 
-    # Initialize cluster centers by choosing random data points.
-    random_indices = np.random.choice(N, size=K, replace=False)
-    w_initial = test_data[random_indices, :]
+#     # Initialize cluster centers by choosing random data points.
+#     random_indices = np.random.choice(N, size=K, replace=False)
+#     w_initial = test_data[random_indices, :]
 
-    w_vector = w_initial.reshape(K * M, 1)
+#     w_vector = w_initial.reshape(K * M, 1)
 
-    for i in np.arange(num_iter):
-        w_vector = w_vector - mu * reg.ngradient(fun, w_vector)
+#     for i in np.arange(num_iter):
+#         w_vector = w_vector - mu * reg.ngradient(fun, w_vector)
 
-    w_final = w_vector.reshape(K, M)
+#     w_final = w_vector.reshape(K, M)
 
-    D = scipy.spatial.distance.cdist(test_data, w_final, metric='euclidean')
-    min_index = np.argmin(D, axis=1)
+#     D = scipy.spatial.distance.cdist(test_data, w_final, metric='euclidean')
+#     min_index = np.argmin(D, axis=1)
 
-    sorted_order = np.argsort(w_final[:, 0], axis=0)
+#     sorted_order = np.argsort(w_final[:, 0], axis=0)
 
-    predicted_labels = np.empty(min_index.shape)
-    predicted_labels[:] = np.nan
+#     predicted_labels = np.empty(min_index.shape)
+#     predicted_labels[:] = np.nan
 
-    for i in np.arange(len(sorted_order)):
-        predicted_labels[min_index == sorted_order[i]] = i
+#     for i in np.arange(len(sorted_order)):
+#         predicted_labels[min_index == sorted_order[i]] = i
 
-    return predicted_labels
+#     return predicted_labels
+
+def kmeans_clustering_sklearn(test_data, K=4):
+    kmeans = KMeans(
+        n_clusters=K,
+        random_state=0,
+        n_init=10
+    )
+
+    pred = kmeans.fit_predict(test_data)
+
+    # labels sorteren op gemiddelde intensiteit van feature 0
+    centers = kmeans.cluster_centers_
+    sorted_order = np.argsort(centers[:, 0])
+
+    pred_sorted = np.zeros_like(pred)
+
+    for new_label, old_label in enumerate(sorted_order):
+        pred_sorted[pred == old_label] = new_label
+
+    return pred_sorted
 
 
 def nn_classifier(train_data, train_labels, test_data):
