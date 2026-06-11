@@ -17,13 +17,13 @@ def segmentation_mymethod(train_data_matrix, train_labels_matrix, test_data, tas
         train_data = train_data_matrix[:, :, i]
         train_labels = train_labels_matrix[:, i].astype(int)
 
-        pred_k1 = seg.segmentation_knn(train_data, train_labels, test_data, k=1)
-        pred_k3 = seg.segmentation_knn(train_data, train_labels, test_data, k=3)
-        pred_k5 = seg.segmentation_knn(train_data, train_labels, test_data, k=5)
+        pred_1 = seg.kmeans_clustering_sklearn(test_data, K=4)
+        pred_2 = seg.kmeans_clustering_sklearn(test_data, K=4)
+        pred_3 = seg.kmeans_clustering_sklearn(test_data, K=4)
 
-        all_predictions.append(pred_k1.astype(int))
-        all_predictions.append(pred_k3.astype(int))
-        all_predictions.append(pred_k5.astype(int))
+        all_predictions.append(pred_1.astype(int))
+        all_predictions.append(pred_2.astype(int))
+        all_predictions.append(pred_3.astype(int))
 
     all_predictions = np.array(all_predictions).T.astype(int)
 
