@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import segmentation as seg
 from scipy import ndimage
-
+from scipy.ndimage import generic_filter
 
 def ngradient(fun, x, h=1e-3):
     # Computes the derivative of a function with numerical differentiation.
@@ -95,8 +95,9 @@ def extract_features(image_number, slice_number):
     t1_edge_f = t1_edge.flatten().T.reshape(-1, 1)
     t2_edge_f = t2_edge.flatten().T.reshape(-1, 1)
 
+    local_var_f, local_var_im = extract_myfeatures(t1_float)
     X = np.concatenate(
-        (X, coord_f, t1_smooth_f, t2_smooth_f, t1_edge_f, t2_edge_f),
+        (X, coord_f, t1_smooth_f, t2_smooth_f, t1_edge_f, t2_edge_f,local_var_f),
         axis=1
     )
 
@@ -105,6 +106,7 @@ def extract_features(image_number, slice_number):
     features += ('Smoothed T2 intensity',)
     features += ('T1 edge strength',)
     features += ('T2 edge strength',)
+    features += ('Local variance',)
 
     return X, features
 
@@ -181,3 +183,16 @@ def classification_error(true_labels, predicted_labels):
     err = np.mean(t != p)
 
     return err
+
+
+def extract_myfeatures(im, size=5):
+    """Calculate the local variance around a pixel"""
+    var_im = generic_filter(im.astype(float),
+                            np.var,
+                            size=size)
+
+    feature = var_im.flatten().reshape(-1,1)
+    if np.max(feature) > 0:
+        feature = feature / np.max(feature)
+
+    return feature, var_im
