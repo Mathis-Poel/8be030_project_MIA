@@ -13,15 +13,31 @@ from sklearn.cluster import KMeans
 
 
 def generate_gaussian_data(N=100, mu1=[0, 0], mu2=[2, 0], sigma1=[[1, 0], [0, 1]], sigma2=[[1, 0], [0, 1]]):
-    # Generates a 2D toy dataset with 2 classes, N samples per class.
+    # Generates a 2D toy dataset with 2 classes, N samples per class. 
+    # Class 1 is Gaussian distributed with mu1 and sigma2
+    # Class 2 is Gaussian distributed with mu2 and sigma2.
+    # Input:
+    # N - Number of samples per class (2N in total)
+    # mu1 - 1x2 vector, mean of class 1
+    # mu2 - 1x2 vector, mean of class 2
+    # sigma1 - 2x2 matrix, covariance of class 1
+    # sigma2 - 2x2 matrix, covariance of class 2
+    
+    # Generate class 1
+    # Rotate data according to covariance matrix (must be positive
+    # definite), and add the mean
     A = np.linalg.cholesky(sigma1)
-    data1 = np.random.randn(N, 2).dot(A) + mu1
+    data1 = np.random.randn(N,2).dot(A) + mu1
 
+    # Generate class 2
     B = np.linalg.cholesky(sigma2)
-    data2 = np.random.randn(N, 2).dot(B) + mu2
-
+    data2 = np.random.randn(N,2).dot(B) + mu2
+    
+    # Put the data together
     X = np.concatenate((data1, data2), axis=0)
-    Y = np.concatenate((np.zeros((N, 1)), np.ones((N, 1))), axis=0)
+
+    # Create labels
+    Y = np.concatenate((np.zeros((N,1)), np.ones((N,1))), axis=0)
 
     return X, Y
 
@@ -81,40 +97,6 @@ def cost_kmeans(X, w_vector):
 
     return J
 
-
-# def kmeans_clustering(test_data, K=2):
-#     # Returns the labels for test_data, predicted by the kMeans classifier.
-#     import segmentation_util as reg
-
-#     fun = lambda w: cost_kmeans(test_data, w)
-#     mu = 0.01
-#     num_iter = 100
-
-#     N, M = test_data.shape
-
-#     # Initialize cluster centers by choosing random data points.
-#     random_indices = np.random.choice(N, size=K, replace=False)
-#     w_initial = test_data[random_indices, :]
-
-#     w_vector = w_initial.reshape(K * M, 1)
-
-#     for i in np.arange(num_iter):
-#         w_vector = w_vector - mu * reg.ngradient(fun, w_vector)
-
-#     w_final = w_vector.reshape(K, M)
-
-#     D = scipy.spatial.distance.cdist(test_data, w_final, metric='euclidean')
-#     min_index = np.argmin(D, axis=1)
-
-#     sorted_order = np.argsort(w_final[:, 0], axis=0)
-
-#     predicted_labels = np.empty(min_index.shape)
-#     predicted_labels[:] = np.nan
-
-#     for i in np.arange(len(sorted_order)):
-#         predicted_labels[min_index == sorted_order[i]] = i
-
-#     return predicted_labels
 
 def kmeans_clustering_sklearn(test_data, K=4):
     kmeans = KMeans(
