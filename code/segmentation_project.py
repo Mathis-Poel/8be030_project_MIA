@@ -7,23 +7,47 @@ import segmentation_util as util
 import matplotlib.pyplot as plt
 import segmentation as seg
 import scipy
-
+    
 def segmentation_mymethod(train_data_matrix, train_labels_matrix, test_data, task='brain'):
+    """segmentation method that combines K means clustering with k-NN classification
+    While K-means uses a unsupervised method based on feature similarity, k-NN uses labelled training data 
+    from mulitple subjects, where the final segmentation is determined uses majority voting.
+    
+    Parameters
+    ----------
+    train_data_matrix : ndarray
+        Training feature data with shape
+        (n_pixels, n_features, n_subjects).
+
+    train_labels_matrix : ndarray
+        Ground truth labels corresponding to the training data with shape
+        (n_pixels, n_subjects).
+
+    test_data : ndarray
+        Feature matrix of the test image with shape
+        (n_pixels, n_features).
+
+    task : str, optional
+        Segmentation task to perform. Can be 'brain' or 'tissue'.
+        Default is 'brain'.
+    Returns
+    -------
+    predicted_labels : ndarray
+        Predicted segmentation labels for all pixels in the test image.
+        For the brain task, the output is converted to boolean labels.
+    """
     all_predictions = []
 
     num_subjects = train_labels_matrix.shape[1]
+    pred_kmeans = seg.kmeans_clustering_sklearn(test_data, K=4)
+    all_predictions.append(pred_kmeans.astype(int))
 
     for i in range(num_subjects):
         train_data = train_data_matrix[:, :, i]
         train_labels = train_labels_matrix[:, i].astype(int)
 
-        pred_1 = seg.kmeans_clustering_sklearn(test_data, K=4)
-        pred_2 = seg.kmeans_clustering_sklearn(test_data, K=4)
-        pred_3 = seg.kmeans_clustering_sklearn(test_data, K=4)
-
-        all_predictions.append(pred_1.astype(int))
+        pred_2 = seg.segmentation_knn(train_data,train_labels,test_data,k=4)
         all_predictions.append(pred_2.astype(int))
-        all_predictions.append(pred_3.astype(int))
 
     all_predictions = np.array(all_predictions).T.astype(int)
 
