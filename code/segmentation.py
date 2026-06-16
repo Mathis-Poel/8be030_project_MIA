@@ -186,7 +186,7 @@ def segmentation_combined_knn(train_data_matrix, train_labels_matrix, test_data,
 def segmentation_knn(train_data, train_labels, test_data, k=1):
     # Subsample training data for efficiency.
     # num_samples = 3000
-    num_samples = 40000
+    num_samples = 57000
     ix = np.random.randint(train_data.shape[0], size=num_samples)
 
     subset_train_data = train_data[ix, :]
