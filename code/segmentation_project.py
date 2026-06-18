@@ -71,11 +71,9 @@ def segmentation_demo():
     test_slice = 1
     task = 'brain'
 
-    #Load data
     train_data, train_labels, train_feature_labels = util.create_dataset(train_subject,train_slice,task)
     test_data, test_labels, test_feature_labels = util.create_dataset(test_subject,test_slice,task)
 
-    ## Compare methods
     num_images = 5
     num_methods = 3
     im_size = [240, 240]
@@ -91,7 +89,7 @@ def segmentation_demo():
     all_data_matrix = np.empty([train_data.shape[0],train_data.shape[1],num_images])
     all_labels_matrix = np.empty([train_labels.size,num_images], dtype=bool)
 
-    #Load datasets once
+  
     print('Loading data for ' + str(num_images) + ' subjects...')
 
     for i in all_subjects:
@@ -102,10 +100,9 @@ def segmentation_demo():
 
     print('Finished loading data.\nStarting segmentation...')
 
-    #Go through each subject, taking i-th subject as the test
     for i in np.arange(num_images):
         sub = i+1
-        #Define training subjects as all, except the test subject
+        
         train_subjects = all_subjects.copy()
         train_subjects = np.delete(train_subjects, i)
 

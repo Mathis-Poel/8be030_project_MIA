@@ -55,7 +55,27 @@ def create_dataset(image_number, slice_number, task):
 
 
 def extract_features(image_number, slice_number):
-    # Let op: pas deze map aan als jouw data ergens anders staat.
+    """
+    Extract pixel-wise features from a brain MRI slice.
+
+    Features include T1 and T2 intensities, distance to the image center,
+    Gaussian-smoothed intensities, edge strengths (Sobel gradients), and
+    local variance.
+
+    Parameters
+    ----------
+    image_number : int
+        Subject number.
+    slice_number : int
+        MRI slice number.
+
+    Returns
+    -------
+    X : ndarray
+        Feature matrix with one row per pixel.
+    features : tuple of str
+        Names of the extracted features.
+    """
     base_dir = '../data/dataset_brains/'
 
     t1 = plt.imread(base_dir + str(image_number) + '_' + str(slice_number) + '_t1.tif')
